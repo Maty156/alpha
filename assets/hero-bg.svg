@@ -1,0 +1,90 @@
+<svg viewBox="0 0 1600 968" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="0.3">
+      <stop offset="0%" stop-color="#100F0C"/>
+      <stop offset="55%" stop-color="#161510"/>
+      <stop offset="100%" stop-color="#0D0C0A"/>
+    </linearGradient>
+
+    <pattern id="hexGrid" width="46" height="80" patternUnits="userSpaceOnUse">
+      <path d="M23 0 L46 13 L46 40 L23 53 L0 40 L0 13 Z" fill="none" stroke="#E8E2D3" stroke-opacity="0.028" stroke-width="1"/>
+    </pattern>
+
+    <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E8483F" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#E8483F" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="focalGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#B3122F" stop-opacity="0.30"/>
+      <stop offset="60%" stop-color="#B3122F" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#B3122F" stop-opacity="0"/>
+    </radialGradient>
+
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#000000" fill-opacity="0.08"/>
+    </pattern>
+
+    <linearGradient id="leftFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0D0C0A" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#0D0C0A" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="0.8"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="968" fill="url(#base)"/>
+  <rect width="1600" height="968" fill="url(#hexGrid)"/>
+
+  <!-- focal glow, positioned right-of-center where the node cluster sits -->
+  <ellipse cx="1180" cy="480" rx="480" ry="420" fill="url(#focalGlow)"/>
+
+  <!-- ===== converging circuit network, right two-thirds of canvas ===== -->
+  <g filter="url(#soft)">
+    <g stroke="#E8483F" stroke-width="1.6" fill="none" stroke-opacity="0.4">
+      <path d="M700 120 H900 L940 160 V280 L1000 340 H1180"/>
+      <path d="M760 860 H920 L960 820 V680 L1020 620 H1180"/>
+      <path d="M650 480 H840 L880 440 V300"/>
+      <path d="M1600 220 H1360 L1320 260 V360 L1260 420 H1180"/>
+      <path d="M1600 700 H1400 L1360 660 V560 L1300 500 H1180"/>
+      <path d="M1600 480 H1350"/>
+    </g>
+    <g stroke="#E8483F" stroke-width="0.9" fill="none" stroke-opacity="0.22">
+      <path d="M780 40 V120"/>
+      <path d="M1050 40 V190"/>
+      <path d="M1300 900 V760"/>
+      <path d="M900 900 V800"/>
+    </g>
+
+    <!-- nodes at intersections -->
+    <g fill="#E8483F">
+      <circle cx="940" cy="160" r="4"/>
+      <circle cx="1000" cy="340" r="4"/>
+      <circle cx="960" cy="820" r="4"/>
+      <circle cx="1020" cy="620" r="4"/>
+      <circle cx="880" cy="440" r="3.5"/>
+      <circle cx="1320" cy="260" r="4"/>
+      <circle cx="1260" cy="420" r="4"/>
+      <circle cx="1360" cy="660" r="4"/>
+      <circle cx="1300" cy="500" r="4"/>
+    </g>
+
+    <!-- central focal node cluster: the "domain compromise" point -->
+    <circle cx="1180" cy="480" r="120" fill="url(#nodeGlow)"/>
+    <circle cx="1180" cy="480" r="46" fill="none" stroke="#E8483F" stroke-width="2.4"/>
+    <circle cx="1180" cy="480" r="46" fill="none" stroke="#E8483F" stroke-width="1" stroke-dasharray="2 8" opacity="0.7">
+      <animateTransform attributeName="transform" type="rotate" from="0 1180 480" to="360 1180 480" dur="40s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1180" cy="480" r="10" fill="#E8483F"/>
+
+    <!-- escalation arrow cutting through the cluster -->
+    <path d="M1080 560 L1260 400" stroke="#E8483F" stroke-width="3" stroke-linecap="round"/>
+    <path d="M1236 400 L1264 400 L1264 428" stroke="#E8483F" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- scanline + left fade so hero text stays readable -->
+  <rect width="1600" height="968" fill="url(#scan)"/>
+  <rect width="1600" height="968" fill="url(#leftFade)"/>
+</svg>

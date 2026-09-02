@@ -8,7 +8,9 @@ const router = express.Router();
 // A signed-in client's real status. Never returns fake findings for an
 // account that hasn't actually had an assessment performed.
 router.get('/', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT assessment_completed FROM users WHERE id = ?').get(req.user.id);
+  const user = db
+    .prepare('SELECT assessment_completed, assessment_data, report_filename FROM users WHERE id = ?')
+    .get(req.user.id);
 
   if (!user || !user.assessment_completed) {
     return res.json({
@@ -17,19 +19,14 @@ router.get('/', requireAuth, (req, res) => {
     });
   }
 
-  // Placeholder shape for when an assessment is actually marked complete
-  // (that flag is currently only set by hand in the DB — no UI for it yet,
-  // since we don't have a real engagement workflow built).
-  res.json({
-    completed: true,
-    data: {
-      machines: 4,
-      users: 27,
-      critical: 5,
-      high: 8,
-      attackPath: ['USER01', 'WORKSTATION01', 'SERVICE01', 'DOMAIN ADMIN'],
-    },
-  });
+  let data = null;
+  try {
+    data = JSON.parse(user.assessment_data);
+  } catch {
+    data = null;
+  }
+
+  res.json({ completed: true, data, hasReport: !!user.report_filename });
 });
 
 module.exports = router;

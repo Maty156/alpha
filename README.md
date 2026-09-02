@@ -17,21 +17,50 @@ Visit http://localhost:3000 — the site and the API run from the same server.
 ## What's real vs. what's not
 
 - **Real:** account registration, login, logout, sessions (httpOnly JWT cookie),
-  password hashing (bcrypt), a per-account assessment status endpoint that
-  correctly refuses to show fake findings to an account that hasn't had a real
-  assessment, and a client dashboard page (`dashboard.html`) that requires a
-  valid session (redirects to `/` if you're not signed in).
-- **Not built yet:** there's no admin interface to actually mark an assessment
-  "completed" for a client — that's a manual DB edit for now. If you have the
-  `sqlite3` CLI installed:
-  ```bash
-  sqlite3 data.sqlite "UPDATE users SET assessment_completed = 1 WHERE email = 'client@example.com';"
-  ```
-  If you don't (common on fresh installs), use this instead:
-  ```bash
-  node -e "require('./db').prepare('UPDATE users SET assessment_completed = 1 WHERE email = ?').run('client@example.com')"
-  ```
-  No email sending. No password reset flow.
+  password hashing (bcrypt), role-based access (client vs. admin), a per-account
+  assessment status endpoint that never shows fake findings to an untested client,
+  a client dashboard with a live message thread to Alpha, a full **admin panel**
+  (`/admin.html`) for managing clients and messages, **PDF report upload/download**
+  (admin uploads a real report per client, client downloads it), and an
+  **auto-generated completion certificate** (PDF, drawn server-side with `pdfkit`
+  — no template image needed) available the moment an assessment is marked complete.
+- **Not built yet:** no email sending (messages only appear inside the portal,
+  nothing gets emailed out; report uploads don't trigger a notification either).
+  No password reset flow.
+
+## Delivering a report + certificate to a client
+
+1. Admin panel → Clients tab → select the client → fill in the assessment fields → **Save**.
+2. Same panel, right below the form → **Upload report (PDF)** → pick the actual report file → Upload.
+3. The client now sees, on their dashboard's Assessment tab:
+   - Their real findings (from step 1)
+   - A **Download Certificate** button — generates a PDF certificate on the fly, no manual work needed
+   - A **Download Full Report** button — only appears once you've uploaded a file in step 2
+
+The certificate is regenerated fresh every time it's downloaded (not stored as a
+file), so if you ever change the completion date or company name, the next
+download reflects it automatically.
+
+There's no public "sign up as admin" form on purpose — admins are created from
+the server directly:
+
+```bash
+node scripts/create-admin.js "Alpha Internal" admin@yourdomain.com somepassword
+```
+
+Log in with those credentials at `/` (the same Client Login modal) — the server
+recognizes the `admin` role and redirects to `/admin.html` instead of the client
+dashboard automatically. Regular visitors registering through the site always get
+a `client` role; there's no way to self-register as admin.
+
+## Marking an assessment complete
+
+Do this from the admin panel now (`/admin.html` → Clients tab → select a client →
+fill in machines/users/critical/high/attack path → Save) rather than hand-editing
+the database. The manual DB approach from earlier still works too if you ever need it:
+```bash
+node -e "require('./db').prepare('UPDATE users SET assessment_completed = 1 WHERE email = ?').run('client@example.com')"
+```
 
 ## One tradeoff worth knowing
 

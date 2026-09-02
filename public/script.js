@@ -81,15 +81,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showSignedInState(user) {
     if (!navActions) return;
+    const portalUrl = user.role === 'admin' ? '/admin.html' : '/dashboard.html';
     navActions.innerHTML = `
-      <a href="/dashboard.html" class="nav-login">Dashboard</a>
+      <a href="${portalUrl}" class="nav-login">${user.role === 'admin' ? 'Admin Panel' : 'Dashboard'}</a>
       <button class="nav-cta" id="logoutBtn" style="border:none;">SIGN OUT</button>
     `;
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await apiFetch(`${API}/logout`, { method: 'POST' }).catch(() => {});
       window.location.reload();
     });
-    loadAssessmentStatus();
+    if (user.role !== 'admin') loadAssessmentStatus();
   }
 
   async function checkSession() {
@@ -119,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setFormError('loginError', '');
     const body = formToObject(e.target);
     try {
-      await apiFetch(`${API}/login`, { method: 'POST', body: JSON.stringify(body) });
-      window.location.href = '/dashboard.html';
+      const { user } = await apiFetch(`${API}/login`, { method: 'POST', body: JSON.stringify(body) });
+      window.location.href = user.role === 'admin' ? '/admin.html' : '/dashboard.html';
     } catch (err) {
       setFormError('loginError', err.message);
     }
@@ -132,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const body = formToObject(e.target);
     try {
       await apiFetch(`${API}/register`, { method: 'POST', body: JSON.stringify(body) });
+      // registration always creates a client account — admins are seeded separately
       window.location.href = '/dashboard.html';
     } catch (err) {
       setFormError('registerError', err.message);

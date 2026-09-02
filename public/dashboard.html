@@ -24,6 +24,32 @@
   .empty-state svg { margin-bottom: 18px; opacity: 0.7; }
   .empty-state h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
   .empty-state p { color: var(--text-1); font-size: 14px; max-width: 420px; margin: 0 auto 24px; }
+
+  .dash-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .dash-tab {
+    background: none; border: none; padding: 12px 4px; margin-right: 24px;
+    font-size: 14px; font-weight: 700; color: var(--text-2);
+    border-bottom: 2px solid transparent; transition: color .2s ease, border-color .2s ease;
+  }
+  .dash-tab:hover { color: var(--text-1); }
+  .dash-tab.active { color: var(--text-0); border-bottom-color: var(--red); }
+  .dash-view { display: none; }
+  .dash-view.active { display: block; }
+
+  .thread { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; max-width: 640px; }
+  .msg { max-width: 78%; padding: 12px 16px; border-radius: 10px; font-size: 13.5px; line-height: 1.5; }
+  .msg .msg-meta { font-size: 10.5px; color: var(--text-2); margin-top: 6px; letter-spacing: 0.3px; }
+  .msg.client { align-self: flex-end; background: linear-gradient(135deg, var(--red), var(--red-dark)); color: #0D0C0A; }
+  .msg.client .msg-meta { color: rgba(13,12,10,0.6); }
+  .msg.admin { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); color: var(--text-0); }
+  .msg-empty { color: var(--text-2); font-size: 13.5px; margin-bottom: 24px; }
+  .msg-form { display: flex; gap: 10px; max-width: 640px; }
+  .msg-form textarea {
+    flex: 1; resize: none; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; color: var(--text-0); font-family: inherit; font-size: 13.5px;
+    min-height: 48px;
+  }
+  .msg-form textarea:focus { outline: none; border-color: var(--red); }
 </style>
 </head>
 <body>
@@ -63,29 +89,48 @@
         <p id="accountEmail"></p>
       </div>
 
-      <!-- shown when no assessment has been performed yet -->
-      <div class="empty-state" id="emptyState" style="display:none;">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#E8483F" stroke-width="1.6" style="margin:0 auto;">
-          <circle cx="24" cy="24" r="18"/>
-          <path d="M24 15 V26 M24 32 V33"/>
-        </svg>
-        <h3>Your assessment hasn't been completed yet</h3>
-        <p>Once Alpha performs an authorized security assessment for your organization, your findings, attack paths, and remediation guidance will appear here.</p>
-        <a href="mailto:contact@alpha-cyber.example" class="btn-primary">CONTACT ALPHA TO SCHEDULE</a>
+      <div class="dash-tabs">
+        <button class="dash-tab active" data-view="assessment">Assessment</button>
+        <button class="dash-tab" data-view="contact">Contact</button>
       </div>
 
-      <!-- shown once an assessment is marked complete -->
-      <div id="completeState" style="display:none;">
-        <div class="dashboard">
-          <div>
-            <div class="dash-stats" id="statsGrid"></div>
-            <div class="path-chain" id="pathChain"></div>
-          </div>
-          <div class="dash-copy">
-            <h3>Assessment Summary</h3>
-            <p>This reflects the real findings from your organization's assessment — not sample data.</p>
+      <div class="dash-view active" id="view-assessment">
+        <!-- shown when no assessment has been performed yet -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#E8483F" stroke-width="1.6" style="margin:0 auto;">
+            <circle cx="24" cy="24" r="18"/>
+            <path d="M24 15 V26 M24 32 V33"/>
+          </svg>
+          <h3>Your assessment hasn't been completed yet</h3>
+          <p>Once Alpha performs an authorized security assessment for your organization, your findings, attack paths, and remediation guidance will appear here.</p>
+          <button class="btn-primary" id="goToContact">MESSAGE ALPHA TO SCHEDULE</button>
+        </div>
+
+        <!-- shown once an assessment is marked complete -->
+        <div id="completeState" style="display:none;">
+          <div class="dashboard">
+            <div>
+              <div class="dash-stats" id="statsGrid"></div>
+              <div class="path-chain" id="pathChain"></div>
+            </div>
+            <div class="dash-copy">
+              <h3>Assessment Summary</h3>
+              <p>This reflects the real findings from your organization's assessment — not sample data.</p>
+              <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;">
+                <a href="/api/certificate" class="btn-primary" download>DOWNLOAD CERTIFICATE</a>
+                <a href="/api/report" class="btn-outline" id="reportLink" style="display:none;" download>DOWNLOAD FULL REPORT</a>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div class="dash-view" id="view-contact">
+        <div class="thread" id="messageThread"></div>
+        <form class="msg-form" id="messageForm">
+          <textarea name="body" placeholder="Message Alpha…" required></textarea>
+          <button type="submit" class="btn-primary">SEND</button>
+        </form>
       </div>
     </div>
   </div>

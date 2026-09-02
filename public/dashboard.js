@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/';
     return;
   }
+  if (user.role === 'admin') {
+    window.location.href = '/admin.html';
+    return;
+  }
 
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('dashContent').style.display = 'block';
@@ -57,8 +61,66 @@ document.addEventListener('DOMContentLoaded', async () => {
           return node + arrow;
         })
         .join('');
+
+      if (status.hasReport) {
+        document.getElementById('reportLink').style.display = 'inline-block';
+      }
     }
   } catch {
     document.getElementById('emptyState').style.display = 'block';
   }
+
+  // ---------- tabs ----------
+  const tabs = document.querySelectorAll('.dash-tab');
+  const views = document.querySelectorAll('.dash-view');
+  function activateTab(name) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.view === name));
+    views.forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
+    if (name === 'contact') loadMessages();
+  }
+  tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.view)));
+  document.getElementById('goToContact')?.addEventListener('click', () => activateTab('contact'));
+
+  // ---------- messages ----------
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  function formatTime(iso) {
+    return new Date(iso + 'Z').toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function loadMessages() {
+    const thread = document.getElementById('messageThread');
+    try {
+      const { messages } = await apiFetch(`${API}/messages`);
+      if (!messages.length) {
+        thread.innerHTML = `<div class="msg-empty">No messages yet — send Alpha a note below to get started.</div>`;
+        return;
+      }
+      thread.innerHTML = messages.map(m => `
+        <div class="msg ${m.sender}">
+          ${escapeHtml(m.body)}
+          <div class="msg-meta">${m.sender === 'admin' ? 'Alpha Team' : 'You'} · ${formatTime(m.created_at)}</div>
+        </div>
+      `).join('');
+    } catch {
+      thread.innerHTML = `<div class="msg-empty">Couldn't load messages. Try again shortly.</div>`;
+    }
+  }
+
+  document.getElementById('messageForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const textarea = e.target.querySelector('textarea');
+    const body = textarea.value.trim();
+    if (!body) return;
+    try {
+      await apiFetch(`${API}/messages`, { method: 'POST', body: JSON.stringify({ body }) });
+      textarea.value = '';
+      loadMessages();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
 });

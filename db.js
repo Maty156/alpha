@@ -14,7 +14,9 @@ db.exec(`
     company_name   TEXT NOT NULL,
     email          TEXT NOT NULL UNIQUE,
     password_hash  TEXT NOT NULL,
+    role           TEXT NOT NULL DEFAULT 'client',
     assessment_completed INTEGER NOT NULL DEFAULT 0,
+    assessment_data TEXT,
     created_at     TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -26,6 +28,30 @@ db.exec(`
     message      TEXT,
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    sender     TEXT NOT NULL CHECK (sender IN ('client','admin')),
+    body       TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
+
+// Lightweight migration for DBs created before role/assessment_data existed
+// (SQLite has no "ADD COLUMN IF NOT EXISTS", so check first).
+const userColumns = db.prepare(`PRAGMA table_info(users)`).all().map(c => c.name);
+if (!userColumns.includes('role')) {
+  db.exec(`ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'client'`);
+}
+if (!userColumns.includes('assessment_data')) {
+  db.exec(`ALTER TABLE users ADD COLUMN assessment_data TEXT`);
+}
+if (!userColumns.includes('report_filename')) {
+  db.exec(`ALTER TABLE users ADD COLUMN report_filename TEXT`);
+}
+if (!userColumns.includes('assessment_completed_at')) {
+  db.exec(`ALTER TABLE users ADD COLUMN assessment_completed_at TEXT`);
+}
 
 module.exports = db;

@@ -15,7 +15,7 @@ const COOKIE_OPTS = {
 
 function issueSession(res, user) {
   const token = jwt.sign(
-    { id: user.id, email: user.email, companyName: user.company_name },
+    { id: user.id, email: user.email, companyName: user.company_name, role: user.role },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -27,6 +27,7 @@ function publicUser(user) {
     id: user.id,
     email: user.email,
     companyName: user.company_name,
+    role: user.role,
     assessmentCompleted: !!user.assessment_completed,
   };
 }

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Dashboard — Alpha Cybersecurity</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .dash-page { min-height: 100vh; }
+  .dash-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px; border-bottom: 1px solid var(--border);
+  }
+  .dash-greeting { padding: 56px 0 8px; }
+  .dash-greeting .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: var(--red); margin-bottom: 10px; }
+  .dash-greeting h1 { font-size: 32px; font-weight: 800; }
+  .dash-greeting p { color: var(--text-1); font-size: 14.5px; margin-top: 8px; }
+  .dash-loading { padding: 80px 0; text-align: center; color: var(--text-2); font-size: 14px; }
+  .dash-content { display: none; padding-bottom: 80px; }
+  .empty-state {
+    border: 1px dashed var(--border-bright); border-radius: 10px;
+    padding: 48px 32px; text-align: center; margin-top: 12px;
+  }
+  .empty-state svg { margin-bottom: 18px; opacity: 0.7; }
+  .empty-state h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .empty-state p { color: var(--text-1); font-size: 14px; max-width: 420px; margin: 0 auto 24px; }
+</style>
+</head>
+<body>
+
+<div class="dash-page">
+  <div class="dash-topbar">
+    <div class="logo">
+      <svg viewBox="0 0 150 210" xmlns="http://www.w3.org/2000/svg" style="width:24px;height:28px;">
+        <g fill="none" stroke="#E8483F" stroke-width="7" stroke-linejoin="round">
+          <path d="M10 30 L-15 -35 L45 5 Z"/>
+          <path d="M110 30 L135 -35 L75 5 Z"/>
+          <path d="M10 30 L45 5 L75 5 L110 30 L120 90 L95 130 L60 150 L25 130 L0 90 Z"/>
+          <path d="M45 5 L60 70 L75 5"/>
+          <path d="M0 90 L60 70 L120 90"/>
+          <path d="M25 130 L60 70 L95 130"/>
+          <path d="M40 130 L60 155 L80 130"/>
+        </g>
+      </svg>
+      <div class="logo-text">
+        <div class="name">ALPHA</div>
+        <div class="sub">CLIENT PORTAL</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <a href="/" class="nav-login">&larr; Back to site</a>
+      <button class="nav-cta" id="logoutBtn" style="border:none;">SIGN OUT</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="dash-loading" id="loadingState">Loading your account…</div>
+
+    <div class="dash-content" id="dashContent">
+      <div class="dash-greeting">
+        <div class="eyebrow">CLIENT DASHBOARD</div>
+        <h1 id="greeting">Welcome back</h1>
+        <p id="accountEmail"></p>
+      </div>
+
+      <!-- shown when no assessment has been performed yet -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#E8483F" stroke-width="1.6" style="margin:0 auto;">
+          <circle cx="24" cy="24" r="18"/>
+          <path d="M24 15 V26 M24 32 V33"/>
+        </svg>
+        <h3>Your assessment hasn't been completed yet</h3>
+        <p>Once Alpha performs an authorized security assessment for your organization, your findings, attack paths, and remediation guidance will appear here.</p>
+        <a href="mailto:contact@alpha-cyber.example" class="btn-primary">CONTACT ALPHA TO SCHEDULE</a>
+      </div>
+
+      <!-- shown once an assessment is marked complete -->
+      <div id="completeState" style="display:none;">
+        <div class="dashboard">
+          <div>
+            <div class="dash-stats" id="statsGrid"></div>
+            <div class="path-chain" id="pathChain"></div>
+          </div>
+          <div class="dash-copy">
+            <h3>Assessment Summary</h3>
+            <p>This reflects the real findings from your organization's assessment — not sample data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

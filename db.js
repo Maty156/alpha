@@ -53,5 +53,11 @@ if (!userColumns.includes('report_filename')) {
 if (!userColumns.includes('assessment_completed_at')) {
   db.exec(`ALTER TABLE users ADD COLUMN assessment_completed_at TEXT`);
 }
+if (!userColumns.includes('contact_name')) {
+  db.exec(`ALTER TABLE users ADD COLUMN contact_name TEXT`);
+}
+if (!userColumns.includes('certificate_id')) {
+  db.exec(`ALTER TABLE users ADD COLUMN certificate_id TEXT`);
+}
 
 module.exports = db;

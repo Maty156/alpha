@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const db = require('../db');
 const { requireAdmin } = require('../middleware/requireAuth');
+const { certificateId } = require('../utils/certificate');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -31,7 +32,7 @@ const upload = multer({
 router.get('/clients', (req, res) => {
   const rows = db
     .prepare(`
-      SELECT id, company_name, email, assessment_completed, created_at
+      SELECT id, company_name, contact_name, email, assessment_completed, created_at
       FROM users
       WHERE role = 'client'
       ORDER BY created_at DESC
@@ -42,6 +43,7 @@ router.get('/clients', (req, res) => {
     clients: rows.map(r => ({
       id: r.id,
       companyName: r.company_name,
+      contactName: r.contact_name,
       email: r.email,
       assessmentCompleted: !!r.assessment_completed,
       createdAt: r.created_at,
@@ -52,7 +54,7 @@ router.get('/clients', (req, res) => {
 // ---------- GET /api/admin/clients/:id ----------
 router.get('/clients/:id', (req, res) => {
   const user = db
-    .prepare(`SELECT id, company_name, email, assessment_completed, assessment_data, report_filename FROM users WHERE id = ? AND role = 'client'`)
+    .prepare(`SELECT id, company_name, contact_name, email, assessment_completed, assessment_data, report_filename FROM users WHERE id = ? AND role = 'client'`)
     .get(req.params.id);
   if (!user) return res.status(404).json({ error: 'Client not found.' });
 
@@ -63,6 +65,7 @@ router.get('/clients/:id', (req, res) => {
     client: {
       id: user.id,
       companyName: user.company_name,
+      contactName: user.contact_name,
       email: user.email,
       assessmentCompleted: !!user.assessment_completed,
       assessmentData: data,
@@ -96,6 +99,11 @@ router.put('/clients/:id/assessment', (req, res) => {
 
   db.prepare('UPDATE users SET assessment_completed = 1, assessment_data = ?, assessment_completed_at = COALESCE(assessment_completed_at, datetime(\'now\')) WHERE id = ?')
     .run(JSON.stringify(data), req.params.id);
+
+  // stamp a stable certificate_id tied to this specific completion date
+  const row = db.prepare('SELECT assessment_completed_at FROM users WHERE id = ?').get(req.params.id);
+  const certId = certificateId(req.params.id, row.assessment_completed_at);
+  db.prepare('UPDATE users SET certificate_id = ? WHERE id = ?').run(certId, req.params.id);
 
   res.json({ ok: true, data });
 });

@@ -23,19 +23,23 @@ router.get('/report', requireAuth, (req, res) => {
 });
 
 // ---------- GET /api/certificate — auto-generated, only if assessment is complete ----------
-router.get('/certificate', requireAuth, (req, res) => {
+router.get('/certificate', requireAuth, async (req, res) => {
   const user = db
-    .prepare('SELECT company_name, assessment_completed, assessment_completed_at FROM users WHERE id = ?')
+    .prepare('SELECT company_name, assessment_completed, assessment_completed_at, certificate_id FROM users WHERE id = ?')
     .get(req.user.id);
 
   if (!user || !user.assessment_completed) {
     return res.status(403).json({ error: 'Your assessment must be completed before a certificate is available.' });
   }
 
-  generateCertificate(res, {
+  const verifyUrl = `${req.protocol}://${req.get('host')}/verify.html?code=${user.certificate_id}`;
+
+  await generateCertificate(res, {
     userId: req.user.id,
     companyName: user.company_name,
     completedAt: user.assessment_completed_at || new Date().toISOString(),
+    certificateId: user.certificate_id,
+    verifyUrl,
   });
 });
 

@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('dashContent').style.display = 'block';
-  document.getElementById('greeting').textContent = `Welcome back, ${user.companyName}`;
-  document.getElementById('accountEmail').textContent = user.email;
+  document.getElementById('greeting').textContent = `Welcome back, ${user.contactName || user.companyName}`;
+  document.getElementById('accountEmail').textContent = `${user.companyName} · ${user.email}`;
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await apiFetch(`${API}/auth/logout`, { method: 'POST' }).catch(() => {});

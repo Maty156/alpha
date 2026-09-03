@@ -1,0 +1,36 @@
+╭─    ~/alpha    main !273 ?5                                            ✔  05:09:12 ከሰዓት  
+╰─ turso auth login 
+Opening your browser at:
+https://api.turso.tech?port=38879&redirect=true&state=zIaVUzrumtfTQLy5xHNqGxoCB4nxHNMo&type=cli
+Waiting for authentication...
+✔  Success! Logged in as maty156
+
+✏️  We are so happy you are here!
+Now that you are authenticated, it is time to create a database:
+        turso db create
+
+╭─    ~/alpha    main !273 ?5                                 ✔  2m 20s   05:11:38 ከሰዓት  
+╰─ turso db create alpha-cybersecurity 
+Created group default at aws-eu-west-1 in 805ms.
+Created database alpha-cybersecurity at group default in 908ms.
+
+Start an interactive SQL shell with:
+
+   turso db shell alpha-cybersecurity
+
+To see information about the database, including a connection URL, run:
+
+   turso db show alpha-cybersecurity
+
+To get an authentication token for the database, run:
+
+   turso db tokens create alpha-cybersecurity
+
+
+╭─    ~/alpha    main !273 ?5                                     ✔  9s   05:12:28 ከሰዓት  
+╰─ turso db show alpha-cybersecurity --url
+libsql://alpha-cybersecurity-maty156.aws-eu-west-1.turso.io
+
+╭─    ~/alpha    main !273 ?5                                            ✔  05:12:55 ከሰዓት  
+╰─ turso db tokens create alpha-cybersecurity
+eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg0NDQ4MDgsImlkIjoiMDFhMDY3OWQtMjYwMS03ZDlmLTk5NDctNjA1NTllOTNiMDZkIiwia2lkIjoiaGxBOUZJWHZhVE1lYmVFSlYybFNrTHBrZWNib0YzSlJmRFgtUy1Jd3ByMCIsInJpZCI6ImFmYjVlZmIzLWVlMjktNDYyMi1iMTY1LTg4OTFjZWFlNWRiNSJ9.JWc1AFJHF9ZLdFo7XLgsrGdHQKBrh5ia6EkFzMn-HWOGFipyQVEuPx1ZqMtQydgMs9YKd0IFC5sbq9SWGmAjAQ

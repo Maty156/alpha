@@ -58,56 +58,64 @@ function publicUser(user) {
 }
 
 // ---------- POST /api/auth/register ----------
-router.post('/register', registerLimiter, (req, res) => {
-  const { companyName, contactName, email, password, website, formRenderedAt } = req.body || {};
+router.post('/register', registerLimiter, async (req, res, next) => {
+  try {
+    const { companyName, contactName, email, password, website, formRenderedAt } = req.body || {};
 
-  // honeypot: a hidden field real users never fill; a filled value means a bot
-  if (website) {
-    return res.status(400).json({ error: 'Registration failed. Please try again.' });
+    // honeypot: a hidden field real users never fill; a filled value means a bot
+    if (website) {
+      return res.status(400).json({ error: 'Registration failed. Please try again.' });
+    }
+
+    // timing check: a real human takes at least ~1.5s to fill this form out
+    const elapsed = Date.now() - Number(formRenderedAt || 0);
+    if (formRenderedAt && (elapsed < 1500 || Number.isNaN(elapsed))) {
+      return res.status(400).json({ error: 'Registration failed. Please try again.' });
+    }
+
+    if (!companyName || !contactName || !email || !password) {
+      return res.status(400).json({ error: 'Company name, contact name, email, and password are all required.' });
+    }
+    if (!isStrongEnough(password)) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters and include both letters and numbers.' });
+    }
+
+    const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
+    if (existing) {
+      return res.status(409).json({ error: 'An account with that email already exists.' });
+    }
+
+    const passwordHash = bcrypt.hashSync(password, 10);
+    const info = await db
+      .prepare('INSERT INTO users (company_name, contact_name, email, password_hash) VALUES (?, ?, ?, ?)')
+      .run(companyName.trim(), contactName.trim(), email.toLowerCase().trim(), passwordHash);
+
+    const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
+    issueSession(res, user);
+    res.status(201).json({ user: publicUser(user) });
+  } catch (err) {
+    next(err);
   }
-
-  // timing check: a real human takes at least ~1.5s to fill this form out
-  const elapsed = Date.now() - Number(formRenderedAt || 0);
-  if (formRenderedAt && (elapsed < 1500 || Number.isNaN(elapsed))) {
-    return res.status(400).json({ error: 'Registration failed. Please try again.' });
-  }
-
-  if (!companyName || !contactName || !email || !password) {
-    return res.status(400).json({ error: 'Company name, contact name, email, and password are all required.' });
-  }
-  if (!isStrongEnough(password)) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters and include both letters and numbers.' });
-  }
-
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
-  if (existing) {
-    return res.status(409).json({ error: 'An account with that email already exists.' });
-  }
-
-  const passwordHash = bcrypt.hashSync(password, 10);
-  const info = db
-    .prepare('INSERT INTO users (company_name, contact_name, email, password_hash) VALUES (?, ?, ?, ?)')
-    .run(companyName.trim(), contactName.trim(), email.toLowerCase().trim(), passwordHash);
-
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
-  issueSession(res, user);
-  res.status(201).json({ user: publicUser(user) });
 });
 
 // ---------- POST /api/auth/login ----------
-router.post('/login', loginLimiter, (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required.' });
-  }
+router.post('/login', loginLimiter, async (req, res, next) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim());
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    return res.status(401).json({ error: 'Incorrect email or password.' });
-  }
+    const user = await db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim());
+    if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+      return res.status(401).json({ error: 'Incorrect email or password.' });
+    }
 
-  issueSession(res, user);
-  res.json({ user: publicUser(user) });
+    issueSession(res, user);
+    res.json({ user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // ---------- POST /api/auth/logout ----------
@@ -118,10 +126,14 @@ router.post('/logout', (req, res) => {
 });
 
 // ---------- GET /api/auth/me ----------
-router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
-  if (!user) return res.status(401).json({ error: 'Session invalid.' });
-  res.json({ user: publicUser(user) });
+router.get('/me', requireAuth, async (req, res, next) => {
+  try {
+    const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    if (!user) return res.status(401).json({ error: 'Session invalid.' });
+    res.json({ user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

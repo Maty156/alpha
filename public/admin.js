@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     listEl.innerHTML = clients.map(c => `
       <button class="list-row${c.id === selectedClientId ? ' active' : ''}" data-id="${c.id}">
         <div class="row-title">${escapeHtml(c.companyName)}</div>
-        <div class="row-sub">${escapeHtml(c.email)}</div>
+        <div class="row-sub">${escapeHtml(c.contactName || '—')} · ${escapeHtml(c.email)}</div>
         <span class="row-status ${c.assessmentCompleted ? 'done' : 'pending'}">
           ${c.assessmentCompleted ? 'ASSESSMENT COMPLETE' : 'NOT ASSESSED'}
         </span>
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     detail.innerHTML = `
       <h3>${escapeHtml(client.companyName)}</h3>
-      <div class="detail-sub">${escapeHtml(client.email)}</div>
+      <div class="detail-sub">${escapeHtml(client.contactName || '—')} · ${escapeHtml(client.email)}</div>
 
       <form id="assessmentForm">
         <div class="checkbox-row">

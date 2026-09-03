@@ -424,7 +424,7 @@ nav.links a:hover::after { width: 100%; }
 
 .panel-art {
   position: relative; border-radius: 12px; overflow: hidden;
-  aspect-ratio: 7/10; max-width: 340px; justify-self: center; width: 100%;
+  aspect-ratio: 6/11; max-width: 340px; justify-self: center; width: 100%;
   background: var(--bg-0);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);

@@ -1,5 +1,6 @@
 const PDFDocument = require('pdfkit');
 const crypto = require('crypto');
+const QRCode = require('qrcode');
 
 const CRIMSON = '#B3122F';
 const CRIMSON_BRIGHT = '#E8483F';
@@ -108,7 +109,7 @@ function drawSeal(doc, cx, cy) {
  * Streams a completed-assessment certificate PDF to `res`.
  * `client` = { companyName, completedAt } — completedAt as an ISO-ish string.
  */
-function generateCertificate(res, client) {
+async function generateCertificate(res, client) {
   const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 0 });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="alpha-certificate-${client.userId}.pdf"`);
@@ -124,12 +125,6 @@ function generateCertificate(res, client) {
   doc.rect(0, 0, W, H).fill(grad);
 
   drawHexGrid(doc, margin + 8, margin + 8, W - (margin + 8) * 2, H - (margin + 8) * 2, CRIMSON, 0.05);
-
-  // corner dot-burst accents (same motif as the site's hero background)
-  drawDotBurst(doc, margin + 30, margin + 30, CRIMSON);
-  doc.save().rotate(180, { origin: [W - margin - 30, H - margin - 30] });
-  drawDotBurst(doc, W - margin - 30, H - margin - 30, CRIMSON);
-  doc.restore();
 
   // outer + inner border frame
   doc.lineWidth(2).strokeColor(CRIMSON)
@@ -193,8 +188,28 @@ function generateCertificate(res, client) {
 
   drawSeal(doc, W / 2, sigY - 46);
 
-  // verification code
-  const certId = certificateId(client.userId, client.completedAt);
+  // verification code + real scannable QR (with its own white backing so it
+  // stays scannable over the textured background)
+  const certId = client.certificateId || certificateId(client.userId, client.completedAt);
+  const verifyUrl = client.verifyUrl || `https://alpha-cybersecurity.example/verify.html?code=${certId}`;
+
+  const qrSize = 64;
+  const qrX = W - margin - 26 - qrSize;
+  const qrY = H - margin - 26 - qrSize;
+
+  doc.roundedRect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12, 4).fill('#FFFFFF');
+  doc.lineWidth(0.75).strokeColor(CRIMSON).roundedRect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12, 4).stroke();
+
+  try {
+    const qrBuffer = await QRCode.toBuffer(verifyUrl, {
+      type: 'png', margin: 0, width: qrSize * 4,
+      color: { dark: '#8A0F26', light: '#FFFFFF' },
+    });
+    doc.image(qrBuffer, qrX, qrY, { width: qrSize, height: qrSize });
+  } catch {
+    // if QR generation fails for any reason, the certificate still renders fine without it
+  }
+
   doc.font('Helvetica').fontSize(8.5).fillColor(MUTED)
     .text(`Verification code: ${certId}`, margin + 8, H - margin - 34, { width: W - (margin + 8) * 2, align: 'center' });
 

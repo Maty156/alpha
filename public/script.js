@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function setModalTab(which) {
     modalTabs.forEach(t  => t.classList.toggle('active', t.dataset.form === which));
     modalForms.forEach(f => f.classList.toggle('active', f.id === `form-${which}`));
+    if (which === 'register') {
+      const stamp = document.getElementById('formRenderedAt');
+      if (stamp) stamp.value = Date.now();
+    }
   }
 
   openBtns.forEach(btn => {
@@ -131,6 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     setFormError('registerError', '');
     const body = formToObject(e.target);
+
+    if (body.password !== body.confirmPassword) {
+      setFormError('registerError', 'Passwords do not match.');
+      return;
+    }
+    delete body.confirmPassword;
+
     try {
       await apiFetch(`${API}/register`, { method: 'POST', body: JSON.stringify(body) });
       // registration always creates a client account — admins are seeded separately
@@ -138,6 +149,39 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       setFormError('registerError', err.message);
     }
+  });
+
+  // ---------- password strength meter ----------
+  function scorePassword(pw) {
+    if (!pw) return 0;
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    if (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
+    return Math.min(score, 4);
+  }
+  const LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+
+  const pwField = document.getElementById('registerPassword');
+  const meter = document.getElementById('strengthMeter');
+  const label = document.getElementById('strengthLabel');
+  pwField?.addEventListener('input', () => {
+    const score = scorePassword(pwField.value);
+    meter.dataset.score = score;
+    label.textContent = pwField.value ? LABELS[score] : '';
+  });
+
+  // ---------- password show/hide toggles ----------
+  document.querySelectorAll('.eye-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = btn.previousElementSibling;
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.querySelector('.eye-open').style.display = isHidden ? 'none' : 'block';
+      btn.querySelector('.eye-closed').style.display = isHidden ? 'block' : 'none';
+      btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+    });
   });
 
   // ---------- Live assessment status (replaces the static demo dashboard note when signed in) ----------

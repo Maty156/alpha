@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Certificate — Alpha Cybersecurity</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .verify-card {
+    max-width: 440px; width: 100%; margin: 24px; padding: 40px 32px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px; text-align: center;
+  }
+  .verify-icon { margin-bottom: 20px; }
+  .verify-card h1 { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+  .verify-card p { color: var(--text-1); font-size: 13.5px; line-height: 1.6; }
+  .verify-card .company { color: var(--red); font-weight: 800; font-size: 22px; margin: 14px 0 4px; }
+  .verify-card .date { color: var(--text-2); font-size: 12.5px; margin-bottom: 20px; }
+  .verify-card .code { font-family: monospace; font-size: 11px; color: var(--text-2); margin-top: 20px; }
+  .back-link { display: block; margin-top: 24px; font-size: 12.5px; color: var(--text-2); }
+</style>
+</head>
+<body>
+  <div class="verify-card" id="result">
+    <p>Checking…</p>
+  </div>
+
+  <script>
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const el = document.getElementById('result');
+
+      if (!code) {
+        el.innerHTML = `<h1>No verification code provided</h1><p>Scan the QR code on an Alpha Cybersecurity certificate, or enter a code in the URL.</p>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/verify/${encodeURIComponent(code)}`);
+        const data = await res.json();
+
+        if (!data.valid) {
+          el.innerHTML = `
+            <svg class="verify-icon" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#E8483F" stroke-width="1.8"><circle cx="24" cy="24" r="19"/><path d="M17 17l14 14M31 17l-14 14"/></svg>
+            <h1>Not a valid certificate</h1>
+            <p>This verification code doesn't match any certificate issued by Alpha Cybersecurity.</p>
+          `;
+          return;
+        }
+
+        const dateStr = new Date(data.completedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        el.innerHTML = `
+          <svg class="verify-icon" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#4ade80" stroke-width="1.8"><circle cx="24" cy="24" r="19"/><path d="M15 24l6 6 12-13"/></svg>
+          <h1>Valid Certificate</h1>
+          <div class="company">${data.companyName}</div>
+          <p class="date">Assessment completed ${dateStr}</p>
+          <p>This certifies that the organization above completed an authorized Active Directory security assessment performed by Alpha Cybersecurity.</p>
+          <div class="code">${code}</div>
+        `;
+      } catch {
+        el.innerHTML = `<h1>Couldn't verify right now</h1><p>Please try again shortly.</p>`;
+      }
+    })();
+  </script>
+
+  <a href="/" class="back-link" style="text-align:center;">&larr; Alpha Cybersecurity</a>
+</body>
+</html>

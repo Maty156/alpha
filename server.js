@@ -8,6 +8,7 @@ const assessmentRoutes = require('./routes/assessment');
 const messagesRoutes = require('./routes/messages');
 const adminRoutes = require('./routes/admin');
 const reportsRoutes = require('./routes/reports');
+const verifyRoutes = require('./routes/verify');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use('/api/assessment', assessmentRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', reportsRoutes);
+app.use('/api/verify', verifyRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

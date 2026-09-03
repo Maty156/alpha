@@ -16,17 +16,21 @@ Visit http://localhost:3000 — the site and the API run from the same server.
 
 ## What's real vs. what's not
 
-- **Real:** account registration, login, logout, sessions (httpOnly JWT cookie),
-  password hashing (bcrypt), role-based access (client vs. admin), a per-account
-  assessment status endpoint that never shows fake findings to an untested client,
-  a client dashboard with a live message thread to Alpha, a full **admin panel**
-  (`/admin.html`) for managing clients and messages, **PDF report upload/download**
-  (admin uploads a real report per client, client downloads it), and an
-  **auto-generated completion certificate** (PDF, drawn server-side with `pdfkit`
-  — no template image needed) available the moment an assessment is marked complete.
-- **Not built yet:** no email sending (messages only appear inside the portal,
-  nothing gets emailed out; report uploads don't trigger a notification either).
-  No password reset flow.
+- **Real:** account registration (requires a contact person's name), login, logout,
+  sessions (httpOnly JWT cookie), password hashing (bcrypt), a **password strength
+  meter** on the registration form (with a real server-side minimum: 8+ characters,
+  letters and numbers required — not just cosmetic), **basic bot protection**
+  (a honeypot field plus a minimum-fill-time check that rejects instant/scripted
+  submissions) and **rate limiting** on login/register (429 after too many attempts
+  from the same IP), password-confirmation + show/hide toggle, role-based access
+  (client vs. admin), a per-account assessment status endpoint that never shows
+  fake findings to an untested client, a client dashboard showing the real contact
+  person's name, a live message thread to Alpha, a full **admin panel**
+  (`/admin.html`), PDF report upload/download, and an auto-generated completion
+  certificate with a real scannable QR code linking to a public verification page.
+- **Not built yet:** no email sending. No password reset flow. The bot protection
+  is basic (honeypot + timing + rate limit) — good enough to stop naive scripts
+  and casual abuse, not a full CAPTCHA-grade defense against a determined attacker.
 
 ## Delivering a report + certificate to a client
 

@@ -47,6 +47,16 @@ turso db tokens create alpha-cybersecurity     # copy this → TURSO_AUTH_TOKEN
   - `NODE_ENV` — `production`
 - Deploy. Vercel gives you a `https://your-app.vercel.app` URL — that's your live site.
 
+**Note on `vercel.json`:** it explicitly tells Vercel to bundle `pdfkit`'s font
+files (`node_modules/pdfkit/js/standard-fonts/**`). Without this, certificate
+generation fails on Vercel specifically — pdfkit loads its built-in fonts from
+disk via a dynamic path at runtime, which Vercel's automatic file-bundler can't
+detect through static analysis, so the files silently don't make it into the
+deployed function and `/api/certificate` throws instead of returning a PDF
+(you'd see it download as `certificate.json` containing an error message instead
+of an actual PDF — that's the symptom if this ever regresses). This is already
+fixed in the included `vercel.json`, just flagging why that config exists.
+
 **3. Create your admin account against the live database**
 
 Run this from your own machine, not on Vercel — it just needs the same two

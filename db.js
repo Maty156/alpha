@@ -59,12 +59,15 @@ async function init() {
       );
 
       CREATE TABLE IF NOT EXISTS assessment_requests (
-        id           INTEGER PRIMARY KEY AUTOINCREMENT,
-        name         TEXT NOT NULL,
-        email        TEXT NOT NULL,
-        company_name TEXT,
-        message      TEXT,
-        created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        name            TEXT NOT NULL,
+        email           TEXT NOT NULL,
+        company_name    TEXT,
+        message         TEXT,
+        assessment_type TEXT,
+        preferred_date  TEXT,
+        status          TEXT NOT NULL DEFAULT 'Pending',
+        created_at      TEXT NOT NULL DEFAULT (datetime('now'))
       );
 
       CREATE TABLE IF NOT EXISTS messages (
@@ -73,6 +76,39 @@ async function init() {
         sender     TEXT NOT NULL CHECK (sender IN ('client','admin')),
         body       TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id    INTEGER REFERENCES users(id),
+        actor_label TEXT,
+        action     TEXT NOT NULL,
+        resource   TEXT,
+        metadata   TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS security_events (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        source       TEXT NOT NULL CHECK (source IN ('collector','simulator')),
+        event_id     TEXT NOT NULL,
+        raw_data     TEXT NOT NULL,
+        received_at  TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS alerts (
+        id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id               INTEGER REFERENCES security_events(id),
+        rule_key               TEXT NOT NULL,
+        title                  TEXT NOT NULL,
+        severity               TEXT NOT NULL,
+        mitre_technique        TEXT,
+        description            TEXT,
+        status                 TEXT NOT NULL DEFAULT 'New',
+        investigation_notes    TEXT,
+        promoted_finding_client_id INTEGER REFERENCES users(id),
+        created_at             TEXT NOT NULL DEFAULT (datetime('now')),
+        resolved_at            TEXT
       );
     `);
 
@@ -94,6 +130,19 @@ async function init() {
     await maybeAdd('assessment_completed_at', 'TEXT');
     await maybeAdd('contact_name', 'TEXT');
     await maybeAdd('certificate_id', 'TEXT');
+
+    // Same safety net for assessment_requests — older deployments may have
+    // the table without these newer columns.
+    const reqTableInfo = await client.execute(`PRAGMA table_info(assessment_requests)`);
+    const reqExisting = reqTableInfo.rows.map(c => c.name);
+    const maybeAddReq = async (col, def) => {
+      if (!reqExisting.includes(col)) {
+        await client.execute(`ALTER TABLE assessment_requests ADD COLUMN ${col} ${def}`);
+      }
+    };
+    await maybeAddReq('assessment_type', 'TEXT');
+    await maybeAddReq('preferred_date', 'TEXT');
+    await maybeAddReq('status', `TEXT NOT NULL DEFAULT 'Pending'`);
   })();
 
   return initPromise;

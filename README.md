@@ -89,7 +89,41 @@ That's it — no code changes needed between local dev and production, same
   is basic (honeypot + timing + rate limit) — good enough to stop naive scripts
   and casual abuse, not a full CAPTCHA-grade defense against a determined attacker.
 
-## Delivering a report + certificate to a client
+## Recent additions (findings, requests, audit log, detection engine)
+
+**Findings** — assessments can now hold an array of structured findings (title,
+severity, affected asset, category, description, recommendation, status, retest
+status) instead of just two manual numbers. Severity counts auto-compute from
+findings when present; old manual-count assessments still work unchanged
+(`routes/admin.js`, `utils/findings.js`, admin's Clients tab).
+
+**Assessment requests** — the homepage's "Request Assessment" buttons now open
+a real lead-capture form (not the account-registration modal), posting to
+`POST /api/assessment-requests` (public, bot-protected same as registration).
+Admin manages these under the new **Requests** tab (`routes/requests.js`).
+
+**Audit log** — key actions (login, logout, register, assessment completed,
+report uploaded, alert created/promoted, request status changed) are logged
+to a new `audit_logs` table. Admin-only, under the **Audit Log** tab.
+Never logs passwords or tokens. (`utils/auditLog.js`)
+
+**Detection engine** — a new subsystem that turns Windows Security Event Log
+entries into alerts. Two event sources feed the *same* pipeline:
+- **Simulator** — admin's "Simulate Attack Chain" button (Detections tab),
+  fires one synthetic event per rule. Always available, no lab required.
+- **Real collector** — `collector/collector.ps1`, run on your actual lab DC.
+  Polls the Security log, forwards matching events to `POST /api/detections/ingest`,
+  authenticated via the `COLLECTOR_API_KEY` env var (set this on the server,
+  and pass the same value as `$env:ALPHA_KEY` when running the script).
+  See the comments at the top of that script for the `auditpol` commands
+  needed to enable the right audit categories first.
+
+5 rules covered: password spraying, privilege escalation, Kerberoasting,
+suspicious remote logon, service abuse (`utils/detectionRules.js`). An admin
+investigates an alert (status + notes) and can **promote** it into a specific
+client's findings — this requires that client to already have a completed
+assessment, so nothing gets silently attached to an account that hasn't been
+assessed. Alerts are never shown to clients directly.
 
 1. Admin panel → Clients tab → select the client → fill in the assessment fields → **Save**.
 2. Same panel, right below the form → **Upload report (PDF)** → pick the actual report file → Upload.

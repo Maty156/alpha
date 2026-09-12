@@ -10,6 +10,8 @@ const messagesRoutes = require('./routes/messages');
 const adminRoutes = require('./routes/admin');
 const reportsRoutes = require('./routes/reports');
 const verifyRoutes = require('./routes/verify');
+const requestsRoutes = require('./routes/requests');
+const detectionsRoutes = require('./routes/detections');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +42,8 @@ app.use('/api/messages', messagesRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', reportsRoutes);
 app.use('/api/verify', verifyRoutes);
+app.use('/api/assessment-requests', requestsRoutes);
+app.use('/api/detections', detectionsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

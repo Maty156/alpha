@@ -79,6 +79,70 @@
   .status-msg.show { display: block; }
   .status-msg.ok { color: #4ade80; }
   .status-msg.err { color: var(--red); }
+
+  .upload-row { display: flex; gap: 10px; align-items: center; }
+  .upload-row input[type=file] { flex: 1; min-width: 0; }
+  .upload-row button { white-space: nowrap; }
+
+  @media (max-width: 640px) {
+    .dash-topbar { padding: 16px 20px; flex-wrap: wrap; gap: 10px; }
+    .wrap { padding: 0 20px; }
+    .form-row { grid-template-columns: 1fr; }
+    .upload-row { flex-direction: column; align-items: stretch; }
+    .detail-panel { padding: 20px; }
+    .list-row { padding: 12px; }
+  }
+  .detections-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
+  }
+  .detections-toolbar p { color: var(--text-1); font-size: 13px; margin: 0; max-width: 480px; }
+
+  .severity-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.4px;
+    padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+  }
+  .severity-badge.critical { background: rgba(232,72,63,0.18); color: var(--red); }
+  .severity-badge.high     { background: rgba(214,136,58,0.18); color: var(--amber, #D6883A); }
+  .severity-badge.medium   { background: rgba(232,201,58,0.18); color: #E8C93A; }
+  .severity-badge.low      { background: rgba(74,222,128,0.18); color: #4ade80; }
+  .severity-badge.informational { background: rgba(160,157,184,0.18); color: var(--text-2); }
+
+  .status-pill {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+    padding: 3px 8px; border-radius: 4px; background: var(--bg-1); color: var(--text-1);
+    border: 1px solid var(--border);
+  }
+
+  .findings-editor { margin-bottom: 20px; }
+  .finding-card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+    margin-bottom: 12px; background: var(--bg-1);
+  }
+  .finding-card .finding-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .finding-card .finding-head strong { font-size: 13px; }
+  .finding-remove { background: none; border: none; color: var(--red); font-size: 12px; cursor: pointer; }
+  .finding-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .finding-grid label { display: block; font-size: 10px; font-weight: 700; color: var(--text-2); margin-bottom: 4px; letter-spacing: 0.4px; }
+  .finding-grid input, .finding-grid select, .finding-grid textarea {
+    width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: 5px;
+    padding: 8px 10px; color: var(--text-0); font-size: 12.5px; font-family: inherit;
+  }
+  .finding-grid textarea { grid-column: 1 / -1; min-height: 50px; resize: vertical; }
+  .add-finding-btn { margin-bottom: 20px; }
+  .severity-summary { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+
+  .alert-row-title { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .simple-list-item {
+    padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-1);
+  }
+  .simple-list-item:last-child { border-bottom: none; }
+  .simple-list-item .row-title { font-weight: 700; color: var(--text-0); margin-bottom: 4px; }
+  .simple-list-item .row-meta { font-size: 11px; color: var(--text-2); }
+  .request-status-select {
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 5px;
+    color: var(--text-0); font-size: 12px; padding: 6px 8px; margin-top: 8px;
+  }
 </style>
 </head>
 <body>
@@ -114,6 +178,9 @@
     <div class="dash-tabs">
       <button class="dash-tab active" data-view="clients">Clients</button>
       <button class="dash-tab" data-view="messages">Messages</button>
+      <button class="dash-tab" data-view="detections">Detections</button>
+      <button class="dash-tab" data-view="requests">Requests</button>
+      <button class="dash-tab" data-view="auditlog">Audit Log</button>
     </div>
 
     <div class="dash-view active" id="view-clients">
@@ -132,6 +199,27 @@
           <div class="detail-empty">Select a conversation.</div>
         </div>
       </div>
+    </div>
+
+    <div class="dash-view" id="view-detections">
+      <div class="detections-toolbar">
+        <p>Alerts fired by the ALPHA detection engine, from either the real Windows event collector or the simulator.</p>
+        <button class="btn-primary" id="simulateBtn">SIMULATE ATTACK CHAIN</button>
+      </div>
+      <div class="split">
+        <div class="list-panel" id="alertList"></div>
+        <div class="detail-panel" id="alertDetail">
+          <div class="detail-empty">Select an alert to investigate.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-view" id="view-requests">
+      <div class="list-panel" id="requestList" style="max-width: 720px;"></div>
+    </div>
+
+    <div class="dash-view" id="view-auditlog">
+      <div class="list-panel" id="auditLogList"></div>
     </div>
   </div>
 </div>

@@ -45,12 +45,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       document.getElementById('completeState').style.display = 'block';
       const d = status.data;
+      const sc = d.severityCounts;
 
       document.getElementById('statsGrid').innerHTML = `
         <div class="stat"><div class="num">${d.machines}</div><div class="label">MACHINES</div></div>
         <div class="stat"><div class="num">${d.users}</div><div class="label">USERS</div></div>
         <div class="stat"><div class="num crit">${d.critical}</div><div class="label">CRITICAL FINDINGS</div></div>
         <div class="stat"><div class="num warn">${d.high}</div><div class="label">HIGH FINDINGS</div></div>
+        ${sc ? `<div class="stat"><div class="num">${sc.medium}</div><div class="label">MEDIUM FINDINGS</div></div>` : ''}
+        ${sc ? `<div class="stat"><div class="num">${sc.low}</div><div class="label">LOW FINDINGS</div></div>` : ''}
       `;
 
       document.getElementById('pathChain').innerHTML = d.attackPath
@@ -61,6 +64,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           return node + arrow;
         })
         .join('');
+
+      if (Array.isArray(d.findings) && d.findings.length) {
+        document.getElementById('findingsSection').style.display = 'block';
+        document.getElementById('findingsList').innerHTML = d.findings.map(f => `
+          <div class="finding-item">
+            <div class="finding-top">
+              <span class="severity-badge ${f.severity.toLowerCase()}">${f.severity}</span>
+              <span class="finding-title">${escapeHtml(f.title)}</span>
+              <span class="status-pill">${escapeHtml(f.status)}</span>
+            </div>
+            <div class="finding-meta">${[f.affectedAsset, f.category].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+            ${f.description ? `<div class="finding-label">Description</div><p>${escapeHtml(f.description)}</p>` : ''}
+            ${f.recommendation ? `<div class="finding-label">Recommendation</div><p>${escapeHtml(f.recommendation)}</p>` : ''}
+            ${f.retestStatus && f.retestStatus !== 'Not Retested' ? `<div class="finding-meta">Retest: ${escapeHtml(f.retestStatus)}${f.retestVerified ? ' (verified)' : ''}</div>` : ''}
+          </div>
+        `).join('');
+      }
 
       if (status.hasReport) {
         document.getElementById('reportLink').style.display = 'inline-block';

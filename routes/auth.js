@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const db = require('../db');
 const { JWT_SECRET, requireAuth } = require('../middleware/requireAuth');
+const { logAction } = require('../utils/auditLog');
 
 const router = express.Router();
 
@@ -92,6 +93,12 @@ router.post('/register', registerLimiter, async (req, res, next) => {
 
     const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
     issueSession(res, user);
+    await logAction({
+      userId: user.id,
+      actorLabel: `client:${user.email}`,
+      action: 'auth.register',
+      resource: `user:${user.id}`,
+    });
     res.status(201).json({ user: publicUser(user) });
   } catch (err) {
     next(err);
@@ -108,10 +115,20 @@ router.post('/login', loginLimiter, async (req, res, next) => {
 
     const user = await db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim());
     if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+      await logAction({
+        actorLabel: `unknown:${(email || '').toLowerCase().trim()}`,
+        action: 'auth.login_failed',
+      });
       return res.status(401).json({ error: 'Incorrect email or password.' });
     }
 
     issueSession(res, user);
+    await logAction({
+      userId: user.id,
+      actorLabel: `${user.role}:${user.email}`,
+      action: 'auth.login',
+      resource: `user:${user.id}`,
+    });
     res.json({ user: publicUser(user) });
   } catch (err) {
     next(err);
@@ -119,7 +136,21 @@ router.post('/login', loginLimiter, async (req, res, next) => {
 });
 
 // ---------- POST /api/auth/logout ----------
-router.post('/logout', (req, res) => {
+router.post('/logout', async (req, res) => {
+  const token = req.cookies?.alpha_session;
+  if (token) {
+    try {
+      const payload = jwt.verify(token, JWT_SECRET);
+      await logAction({
+        userId: payload.id,
+        actorLabel: `${payload.role}:${payload.email}`,
+        action: 'auth.logout',
+        resource: `user:${payload.id}`,
+      });
+    } catch {
+      // token already invalid/expired — nothing meaningful to log, still proceed with logout
+    }
+  }
   const { maxAge, ...clearOpts } = COOKIE_OPTS;
   res.clearCookie('alpha_session', clearOpts);
   res.json({ ok: true });

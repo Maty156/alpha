@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const { injectSpeedInsights } = require('@vercel/speed-insights');
 
 const db = require('./db');
 const authRoutes = require('./routes/auth');
@@ -15,6 +16,9 @@ const detectionsRoutes = require('./routes/detections');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 app.use(express.json());
 app.use(cookieParser());

@@ -45,7 +45,7 @@
     </nav>
     <div class="nav-actions">
       <a href="#" class="nav-login" data-open-auth="login">Client Login</a>
-      <a href="#" class="nav-cta" data-open-auth="register">REQUEST ASSESSMENT</a>
+      <a href="#" class="nav-cta" data-open-request="true">REQUEST ASSESSMENT</a>
       <button class="nav-hamburger" id="navHamburger" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
@@ -57,7 +57,7 @@
     <a href="#assessment">Assessment Center</a>
     <a href="#contact">Contact</a>
     <a href="#" data-open-auth="login">Client Login</a>
-    <a href="#" data-open-auth="register">Request Assessment</a>
+    <a href="#" data-open-request="true">Request Assessment</a>
   </div>
 </header>
 
@@ -71,7 +71,7 @@
       <h1>SECURE TODAY.<br>DEFEND <span class="accent">TOMORROW.</span></h1>
       <p class="lede">We help organizations identify, assess, and eliminate security risks across their Active Directory environments before attackers exploit them.</p>
       <div class="cta-row">
-        <a href="#" class="btn-primary" data-open-auth="register">REQUEST AN ASSESSMENT &nbsp;&#8594;</a>
+        <a href="#" class="btn-primary" data-open-request="true">REQUEST AN ASSESSMENT &nbsp;&#8594;</a>
         <a href="#services" class="btn-outline">EXPLORE SERVICES</a>
       </div>
       <div class="badges" data-animate data-delay="2">
@@ -203,7 +203,7 @@
             <li>Infrastructure hardening guidance</li>
           </ul>
         </div>
-        <div class="panel-art"><img src="assets/team_umer1.jpg" alt="Umer — Windows / AD"></div>
+        <div class="panel-art"><img src="assets/team-umer.png" alt="Umer — Windows / AD"></div>
       </div>
 
       <div class="team-panel" id="panel-surafel">
@@ -295,7 +295,7 @@
 <footer id="contact">
   <div class="wrap">
     <div class="footer-team-photo">
-      <img src="assets/hero.jpg" alt="The Alpha Cybersecurity team">
+      <img src="assets/hero.png" alt="The Alpha Cybersecurity team">
     </div>
     <p class="footer-team-caption">The people behind Alpha .</p>
     <div class="footer-inner">
@@ -398,5 +398,36 @@
 </div>
 
 <script src="script.js"></script>
+<div class="modal-overlay" id="requestModal">
+  <div class="modal-box">
+    <button class="modal-close" id="requestClose">&times;</button>
+    <div class="modal-title">Request an Assessment</div>
+    <div class="modal-sub">Tell us about your organization — we'll reach out to schedule.</div>
+    <div class="modal-error" id="requestError"></div>
+    <form id="form-request">
+      <div class="hp-field" aria-hidden="true">
+        <label for="reqWebsite">Website</label>
+        <input type="text" id="reqWebsite" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <input type="hidden" name="formRenderedAt" id="requestRenderedAt">
+      <div class="field"><label>Your name</label><input type="text" name="name" required></div>
+      <div class="field"><label>Company name</label><input type="text" name="companyName"></div>
+      <div class="field"><label>Email</label><input type="email" name="email" required></div>
+      <div class="field">
+        <label>Assessment type</label>
+        <select name="assessmentType" style="width:100%; background:var(--bg-0); border:1px solid var(--border); border-radius:8px; padding:12px 14px; color:var(--text-0); font-size:14px;">
+          <option>Active Directory Assessment</option>
+          <option>Red Team Engagement</option>
+          <option>Attack Path Analysis</option>
+          <option>Not sure yet</option>
+        </select>
+      </div>
+      <div class="field"><label>Preferred date</label><input type="date" name="preferredDate"></div>
+      <div class="field"><label>Message</label><textarea name="message" rows="3" style="width:100%; background:var(--bg-0); border:1px solid var(--border); border-radius:8px; padding:12px 14px; color:var(--text-0); font-size:14px; font-family:inherit;"></textarea></div>
+      <button type="submit" class="btn-primary modal-submit">SEND REQUEST</button>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>

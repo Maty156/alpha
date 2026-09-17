@@ -48,6 +48,38 @@ document.addEventListener('DOMContentLoaded', () => {
     setModalTab(which || 'login');
   }
   function closeModal() { overlay.classList.remove('open'); }
+
+  // ---------- Request Assessment modal (separate from login/register) ----------
+  const reqOverlay = document.getElementById('requestModal');
+  const reqClose = document.getElementById('requestClose');
+  document.querySelectorAll('[data-open-request]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      reqOverlay.classList.add('open');
+      document.getElementById('requestRenderedAt').value = Date.now();
+    });
+  });
+  reqClose.addEventListener('click', () => reqOverlay.classList.remove('open'));
+  reqOverlay.addEventListener('click', e => { if (e.target === reqOverlay) reqOverlay.classList.remove('open'); });
+
+  document.getElementById('form-request').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errEl = document.getElementById('requestError');
+    errEl.classList.remove('show');
+    const body = Object.fromEntries(new FormData(e.target));
+    try {
+      const res = await fetch('/api/assessment-requests', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+      e.target.innerHTML = '<p style="color:#4ade80; font-weight:600;">Request sent — we\'ll be in touch soon.</p>';
+      setTimeout(() => reqOverlay.classList.remove('open'), 2000);
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.add('show');
+    }
+  });
   function setModalTab(which) {
     modalTabs.forEach(t  => t.classList.toggle('active', t.dataset.form === which));
     modalForms.forEach(f => f.classList.toggle('active', f.id === `form-${which}`));

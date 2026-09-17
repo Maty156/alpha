@@ -2,6 +2,15 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-secret-change-me';
 
+if (process.env.NODE_ENV === 'production' && JWT_SECRET === 'dev-only-secret-change-me') {
+  console.error(
+    '\n*** SECURITY WARNING ***\n' +
+    'JWT_SECRET is not set — running in production with the placeholder ' +
+    'development secret. Anyone who knows this value could forge session ' +
+    'cookies. Set a real JWT_SECRET environment variable.\n'
+  );
+}
+
 function requireAuth(req, res, next) {
   const token = req.cookies?.alpha_session;
   if (!token) {
